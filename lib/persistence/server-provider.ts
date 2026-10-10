@@ -11,6 +11,7 @@ import {
   type ConnectableQueryable,
 } from '@openmaic/storage/server/reference';
 import { Pool } from 'pg';
+import type { PersistenceStores } from './provider-types';
 
 import { validateAppScene, validateAppStage } from '@/lib/document-store/validators';
 import { configuredLazyAssetByteStore } from '@/lib/persistence/asset-byte-store';
@@ -34,7 +35,7 @@ export type PersistencePoolFactory = (connectionString: string) => Pool;
  * owner-bound store (`createOwnerBoundDocumentStore`,
  * `getOwnerScopedDocumentStore`).
  */
-export interface ServerPersistenceProvider {
+export interface ServerPersistenceProvider extends PersistenceStores {
   pool: Pool;
   runtimeStore: PgRuntimeStore;
   assetStore: PgAssetStore;

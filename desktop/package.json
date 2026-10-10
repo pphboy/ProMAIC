@@ -1,0 +1,11 @@
+{
+  "name": "promaic-player",
+  "productName": "ProMAIC",
+  "version": "1.2.0-rc.1",
+  "description": "Local OpenMAIC course player",
+  "author": "ProMAIC contributors",
+  "license": "MIT",
+  "private": true,
+  "main": "main.cjs",
+  "dependencies": {}
+}

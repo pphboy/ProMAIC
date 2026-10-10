@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * POST /api/folders/members — set which folder a course belongs to.
  *
@@ -34,6 +36,7 @@ function jsonError(status: number, code: string, message: string, headers?: Head
 
 // POST /api/folders/members
 export async function POST(req: NextRequest) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   let body: unknown;

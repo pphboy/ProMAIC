@@ -1,4 +1,7 @@
 import type { RequestListener } from 'node:http';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -52,19 +55,20 @@ describe('embedded persistence route', () => {
     }));
   });
 
-  it('returns a clear 404 when DATABASE_URL is unset', async () => {
+  it('serves a local learner key when DATABASE_URL is unset', async () => {
     vi.stubEnv('DATABASE_URL', '');
+    const dir = mkdtempSync(join(tmpdir(), 'promaic-route-'));
+    vi.stubEnv('OPENMAIC_DATA_DIR', dir);
     const { GET } = await import('@/app/api/persistence/[...path]/route');
-
-    const response = await GET(new Request('http://localhost/api/persistence/runtime/sessions'));
-
-    expect(response.status).toBe(404);
-    await expect(response.json()).resolves.toEqual({
-      error: {
-        code: 'PERSISTENCE_NOT_CONFIGURED',
-        message: 'server persistence not configured',
-      },
-    });
+    try {
+      const response = await GET(new Request('http://localhost/api/persistence/learner-key'));
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ learnerKey: 'local' });
+    } finally {
+      const { closeLocalPersistenceProvider } = await import('@/lib/persistence/sqlite/provider');
+      closeLocalPersistenceProvider();
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('logs 5xx responses with route details and echoes the request id', async () => {

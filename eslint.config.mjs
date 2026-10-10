@@ -32,6 +32,7 @@ const eslintConfig = defineConfig([
     '.next/**',
     'out/**',
     'build/**',
+    'dist/**',
     'next-env.d.ts',
     // Third-party / vendored packages (not our code):
     'packages/docs/**',

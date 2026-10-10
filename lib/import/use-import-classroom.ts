@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
 import { useI18n } from '@/lib/hooks/use-i18n';
+import { validateClassroomArchive } from '@/lib/import/validate-classroom-archive';
 import { db, mediaFileKey } from '@/lib/device-storage/database';
 import type { AudioFileRecord } from '@/lib/device-storage/database';
 import type { GeneratedAgentConfig } from '@/lib/types/stage';
@@ -420,6 +421,7 @@ export function useImportClassroom(onSuccess?: (importedStageId: string) => void
         }
 
         // 3. Generate new IDs
+        validateClassroomArchive(zip, manifest);
         const newStageId = nanoid();
         importedStageId = newStageId;
         const now = Date.now();

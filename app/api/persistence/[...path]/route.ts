@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
 import type { IncomingMessage, RequestListener, ServerResponse } from 'node:http';
 import { Readable } from 'node:stream';
 
@@ -502,6 +503,54 @@ async function handlePersistenceRequestInner(
   request: Request,
   deps: PersistenceRequestDeps,
 ): Promise<Response> {
+  if (isLocalPlaybackConfigured()) {
+    const { createLocalStorageHandler, localOriginRefusal } =
+      await import('@/lib/persistence/sqlite/http');
+    const refusal = localOriginRefusal(request);
+    if (refusal) return refusal;
+    if (routeRelativePath(request) === LEARNER_KEY_PATH) {
+      return request.method === 'GET'
+        ? learnerKeyResponse('local', new Headers())
+        : jsonError(405, 'METHOD_NOT_ALLOWED', 'learner-key accepts GET only');
+    }
+    const response = await runNodeHandler(createLocalStorageHandler(), request);
+    if (response.status === 200 && /\/assets\/[^/]+\/content$/.test(routeRelativePath(request))) {
+      response.headers.set('accept-ranges', 'bytes');
+      const range = request.headers.get('range');
+      if (range && request.method === 'GET') {
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+        let start = 0,
+          end = bytes.length - 1;
+        if (match && (match[1] || match[2])) {
+          if (!match[1]) start = Math.max(0, bytes.length - Number(match[2]));
+          else {
+            start = Number(match[1]);
+            if (match[2]) end = Math.min(end, Number(match[2]));
+          }
+        }
+        if (
+          !match ||
+          (!match[1] && !match[2]) ||
+          !Number.isSafeInteger(start) ||
+          !Number.isSafeInteger(end) ||
+          start < 0 ||
+          start > end ||
+          start >= bytes.length
+        ) {
+          return new Response(null, {
+            status: 416,
+            headers: { 'content-range': `bytes */${bytes.length}` },
+          });
+        }
+        const headers = new Headers(response.headers);
+        headers.set('content-range', `bytes ${start}-${end}/${bytes.length}`);
+        headers.set('content-length', String(end - start + 1));
+        return new Response(bytes.slice(start, end + 1), { status: 206, headers });
+      }
+    }
+    return response;
+  }
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     return jsonError(404, 'PERSISTENCE_NOT_CONFIGURED', 'server persistence not configured');

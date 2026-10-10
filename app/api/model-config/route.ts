@@ -10,6 +10,8 @@
  */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalModelSettings } from '@/lib/persistence/sqlite/settings-http';
 import { z } from 'zod';
 
 import { isServerPersistenceConfigured } from '@/lib/config/feature-flags';
@@ -41,6 +43,7 @@ async function pool() {
 }
 
 export async function GET(req: NextRequest) {
+  if (isLocalPlaybackConfigured()) return handleLocalModelSettings(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
   return withRequestOwner(req, async ({ ownerId }, headers) => {
     const stored = await readWorkspaceModelConfig(await pool(), ownerId);
@@ -98,6 +101,7 @@ export async function PUT(req: NextRequest) {
   }
   const revision = parsed.data.revision;
   const change = parsed.data.change as ModelSettingsChange;
+  if (isLocalPlaybackConfigured()) return handleLocalModelSettings(req, { revision, change });
 
   return withRequestOwner(req, async ({ ownerId }, headers) => {
     const queryable = await pool();

@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * /api/stages/[id] — read, rename, save, and delete one owned course document.
  *
@@ -66,6 +68,7 @@ function mapSaveError(error: unknown, headers: Headers) {
 
 // GET /api/stages/[id] — the full document.
 export async function GET(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   return withRequestOwner(req, async ({ ownerId }, responseHeaders) => {
@@ -79,6 +82,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
 // PATCH /api/stages/[id] — rename the course (owner-only).
 export async function PATCH(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   let body: unknown;
@@ -119,6 +123,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 // PUT /api/stages/[id] — save a whole document.
 export async function PUT(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   let body: unknown;
@@ -181,6 +186,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
 // DELETE /api/stages/[id] — remove the course and its scenes/outline.
 export async function DELETE(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   return withRequestOwner(req, async ({ ownerId }, responseHeaders) => {

@@ -7,7 +7,9 @@ const log = createLogger('UsageStorage');
 
 /** Base directory for usage logs; lands in the openmaic-data volume in Docker. */
 function usageDir(baseDir?: string): string {
-  return baseDir ?? path.join(process.cwd(), 'data', 'usage');
+  return (
+    baseDir ?? path.join(process.env.OPENMAIC_DATA_DIR || path.join(process.cwd(), 'data'), 'usage')
+  );
 }
 
 /** Current month's jsonl file name, e.g. usage/2026-06.jsonl. */

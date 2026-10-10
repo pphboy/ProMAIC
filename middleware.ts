@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { localPlayerApiAllowed, localPlayerOriginAllowed } from '@/lib/config/local-player-routes';
 
 import { isAgentRuntimeConfigured, isProWorkbenchEnabled } from '@/lib/config/feature-flags';
 import { verifyAccessTokenEdge } from '@/lib/server/access-token-edge';
@@ -14,16 +16,52 @@ import {
  * owner (see `lib/server/identity/navigation.ts`).
  */
 function next(request: NextRequest, identity: NavigationIdentity | undefined): NextResponse {
-  if (!identity) return NextResponse.next();
   const headers = new Headers(request.headers);
-  headers.set('cookie', identity.requestCookie);
+  if (identity) headers.set('cookie', identity.requestCookie);
   const response = NextResponse.next({ request: { headers } });
-  response.headers.append('set-cookie', identity.setCookie);
+  if (identity) response.headers.append('set-cookie', identity.setCookie);
+  if (isLocalPlaybackConfigured()) {
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; style-src 'self' 'unsafe-inline' data:; font-src 'self' data: blob:; connect-src 'self' blob: data:; img-src 'self' data: blob:; media-src 'self' data: blob:; frame-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'",
+    );
+  }
   return response;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (isLocalPlaybackConfigured()) {
+    if (pathname.startsWith('/api/') && !localPlayerOriginAllowed(request)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'INVALID_ORIGIN',
+            message: 'Local player accepts same-origin requests only',
+          },
+        },
+        { status: 403 },
+      );
+    }
+    if (pathname.startsWith('/api/') && !localPlayerApiAllowed(pathname)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'CAPABILITY_UNAVAILABLE',
+            message: 'This feature is unavailable in the local player',
+          },
+        },
+        { status: 501 },
+      );
+    }
+    if (
+      ['/workbench', '/workspace', '/generation-preview'].some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+      )
+    ) {
+      return new NextResponse('Not found', { status: 404 });
+    }
+  }
 
   // Return an actual server-side 404 when either half of the workbench is off.
   // Edge middleware cannot reliably inspect server-only deployment variables,

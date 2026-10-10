@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * GET /api/stages/[id]/manifest — freshness manifest for one course (the
  * reference's `stages/:id/manifest`, ported onto the owner-bound store).
@@ -26,6 +28,7 @@ export const runtime = 'nodejs';
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   return withRequestOwner(req, async ({ ownerId }, responseHeaders) => {

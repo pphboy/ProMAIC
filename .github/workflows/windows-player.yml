@@ -1,0 +1,74 @@
+name: Windows player
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['local-course-player-sqlite']
+    tags: ['player-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-player-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      OPENMAIC_STORAGE_BACKEND: sqlite
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify local foundations
+        run: pnpm exec vitest run tests/persistence/backend-config.test.ts tests/persistence/sqlite-database.test.ts tests/persistence/sqlite-documents.test.ts tests/persistence/sqlite-runtime.test.ts tests/persistence/sqlite-provider.test.ts tests/persistence/sqlite-routes.test.ts tests/persistence/sqlite-settings.test.ts tests/desktop/lifecycle.test.ts tests/import/validate-classroom-archive.test.ts
+      - name: Build Windows installer
+        run: pnpm desktop:dist
+      - name: Verify packaged backend runtime
+        run: pnpm desktop:smoke
+      - name: Install smoke-test browser
+        run: pnpm exec playwright install chromium
+      - name: Verify local course playback
+        run: pnpm desktop:smoke:browser
+      - name: Verify optional AI isolation
+        run: node scripts/smoke-local-ai.mjs
+      - name: Install and verify desktop app
+        shell: pwsh
+        run: |
+          $installDir = Join-Path $env:RUNNER_TEMP 'ProMAIC 安装 目录'
+          $profileDir = Join-Path $env:RUNNER_TEMP 'ProMAIC 用户 数据'
+          $installer = Get-ChildItem dist/desktop/*-setup.exe | Select-Object -First 1
+          $process = Start-Process -FilePath $installer.FullName -ArgumentList "/S /D=$installDir" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
+          node scripts/smoke-installed-player.mjs "$installDir/ProMAIC.exe" "$profileDir" "1.2.0-rc.1"
+          if ($LASTEXITCODE -ne 0) { throw 'Installed application smoke failed' }
+      - name: Verify upgrade preserves local courses
+        shell: pwsh
+        run: |
+          $packagePath = 'desktop/package.json'
+          $package = Get-Content $packagePath -Raw | ConvertFrom-Json
+          $package.version = '1.2.0-rc.2'
+          $package | ConvertTo-Json -Depth 10 | Set-Content -Path $packagePath -Encoding utf8
+          pnpm exec electron-builder --config desktop/electron-builder.yml --win --x64 --publish never --config.directories.output=dist/desktop-upgrade
+          if ($LASTEXITCODE -ne 0) { throw 'Upgrade fixture build failed' }
+          $installDir = Join-Path $env:RUNNER_TEMP 'ProMAIC 安装 目录'
+          $profileDir = Join-Path $env:RUNNER_TEMP 'ProMAIC 用户 数据'
+          $installer = Get-ChildItem dist/desktop-upgrade/*-setup.exe | Select-Object -First 1
+          $process = Start-Process -FilePath $installer.FullName -ArgumentList "/S /D=$installDir" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Upgrade failed: $($process.ExitCode)" }
+          node scripts/smoke-installed-player.mjs "$installDir/ProMAIC.exe" "$profileDir" "1.2.0-rc.2"
+          if ($LASTEXITCODE -ne 0) { throw 'Upgraded application smoke failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProMAIC-windows-x64
+          path: dist/desktop/*-setup.exe
+          if-no-files-found: error

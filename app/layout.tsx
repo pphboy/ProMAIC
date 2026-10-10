@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
-import '@openmaic/renderer/fonts.css';
 import 'animate.css';
 import 'katex/dist/katex.min.css';
 import { ThemeProvider } from '@/lib/hooks/use-theme';
@@ -28,6 +27,10 @@ import { ProSwapWatcher } from '@/components/workbench/ProSwapWatcher';
 // `--font-sans` moves to globals.css since the family no longer comes from
 // next/font's generated class.
 import '@fontsource-variable/inter';
+import '@fontsource/noto-sans-sc';
+import '@fontsource/noto-serif-sc';
+import '@fontsource/lxgw-wenkai';
+import '@fontsource/roboto';
 
 /**
  * Applies the dark theme before the first paint. `ThemeProvider` resolves the
@@ -52,6 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="stylesheet" href="/vendor/course-fonts/fonts.css" />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body

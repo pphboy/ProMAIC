@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * /api/stages — the server course library's document index and create face
  * (the home library and the workbench both read it).
@@ -45,6 +47,7 @@ function createStageId(): string {
 // document the caller owns; a host library provider may choose a different
 // set of readable courses (lib/persistence/library.ts has the access rule).
 export async function GET(req: NextRequest) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   return withRequestOwner(req, async (principal, responseHeaders) => {
@@ -69,6 +72,7 @@ export async function GET(req: NextRequest) {
 // a malformed body must not mint an anonymous cookie partition for a request
 // that will not proceed.
 export async function POST(req: NextRequest) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   let body: unknown;

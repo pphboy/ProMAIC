@@ -99,6 +99,12 @@ export function setWorkspaceLayerLoaderForTests(loader?: WorkspaceLayerLoader): 
  * (canonicalizeStoredOwner) instead.
  */
 export async function workspaceLayer(ownerId: string): Promise<ModelConfigLayer | null> {
+  const { isLocalPlaybackConfigured } = await import('@/lib/config/feature-flags');
+  if (isLocalPlaybackConfigured()) {
+    const { readLocalModelConfig } = await import('@/lib/persistence/sqlite/settings');
+    const stored = readLocalModelConfig();
+    return stored ? { source: 'workspace', config: stored.config } : null;
+  }
   const databaseUrl = process.env.DATABASE_URL?.trim();
   if (!databaseUrl) return null;
   const [{ getServerPersistenceProvider }, { readWorkspaceModelConfig }] = await Promise.all([
@@ -124,6 +130,8 @@ export async function workspaceLayer(ownerId: string): Promise<ModelConfigLayer 
  * request gets no workspace, never the account's.
  */
 export async function requestWorkspaceId(req: OwnerAuthRequest): Promise<string | null> {
+  const { isLocalPlaybackConfigured } = await import('@/lib/config/feature-flags');
+  if (isLocalPlaybackConfigured()) return 'local';
   const { resolveRequestOwner, InvalidOwnerCredentialError } =
     await import('@/lib/server/identity/resolve');
   const outcome = await resolveRequestOwner(req);

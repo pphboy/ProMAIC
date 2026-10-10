@@ -10,6 +10,8 @@
  */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { BUILT_IN_AGENTS } from '@/lib/orchestration/registry/built-in';
 
 import { isServerPersistenceConfigured } from '@/lib/config/feature-flags';
 import { agentView } from '@/lib/orchestration/registry/wire';
@@ -21,6 +23,8 @@ import { withRequestOwner } from '@/lib/server/identity/with-owner';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
+  if (isLocalPlaybackConfigured())
+    return NextResponse.json({ agents: Object.values(BUILT_IN_AGENTS).map(agentView) });
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
   return withRequestOwner(req, async ({ ownerId }, headers) => {
     const agents = await listAgentsForOwner(ownerId);
@@ -29,6 +33,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (isLocalPlaybackConfigured())
+    return NextResponse.json(
+      {
+        error: {
+          code: 'CAPABILITY_UNAVAILABLE',
+          message: 'Custom agent editing is unavailable in the local player',
+        },
+      },
+      { status: 501 },
+    );
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
   return withRequestOwner(req, async ({ ownerId }, headers) => {
     const parsed = await parseAgentBody(req, headers);

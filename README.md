@@ -1,3 +1,16 @@
+# ProMAIC local course player
+
+This fork targets a Windows desktop player for OpenMAIC `.maic.zip` courses.
+The local default uses SQLite and local media files; PostgreSQL, S3 and AI keys
+are unnecessary for course import and playback. AI APIs are optional.
+See [Windows build and acceptance](desktop/README.md),
+[local storage and backup](.github/LOCAL_STORAGE.md), and
+[upstream maintenance](AGENTS.md). Build/Windows acceptance work is tracked in
+`openspec/changes/local-course-player-sqlite/tasks.md`.
+
+The upstream documentation retained below describes upstream or explicitly
+configured PostgreSQL deployments; it does not override this fork's local defaults.
+
 <!-- <p align="center">
   <img src="assets/logo-horizontal.png" alt="OpenMAIC" width="420"/>
 </p> -->

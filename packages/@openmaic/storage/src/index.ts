@@ -162,6 +162,7 @@ export {
   RuntimeStageNotFoundError,
 } from './runtime/types.js';
 export { BrowserRuntimeStore, type BrowserRuntimeStoreOptions } from './runtime/browser.js';
+export { assertJsonValue, isLosslessJsonString } from './runtime/json-value.js';
 
 export {
   AGENT_SESSION_LIFECYCLE,

@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * GET /api/stages/[id]/status
  *
@@ -19,6 +21,7 @@ export const runtime = 'nodejs';
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(_req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   const { id } = await params;

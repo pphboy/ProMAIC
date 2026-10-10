@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * GET /api/stage-meta/[stageId] — the per-viewer facts a document does not carry
  * (the reference's stage-meta sidecar, ported onto this branch's owner model).
@@ -36,6 +38,7 @@ export const runtime = 'nodejs';
 type Params = { params: Promise<{ stageId: string }> };
 
 export async function GET(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   // Gated on server persistence, NOT on the agent runtime. Ownership is
   // recorded by the persistence route (every request resolves an owner, and
   // the owner-bound document store writes a meta row for every course), so a

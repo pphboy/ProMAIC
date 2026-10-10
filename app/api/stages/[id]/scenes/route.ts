@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * GET /api/stages/[id]/scenes?ids=a,b,c — batch scene read (reference
  * `stages/:id/scenes`, ported onto the owner-bound document store).
@@ -46,6 +48,7 @@ function isQueryableSceneId(sceneId: string): boolean {
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   const rawIds = new URL(req.url).searchParams.get('ids');

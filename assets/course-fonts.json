@@ -1,0 +1,32 @@
+[
+  {
+    "family": "SourceHanSans",
+    "url": "https://file.maic.chat/fonts/SourceHanSans.woff2",
+    "sha256": "baef3d9c86508d957eee369b1289a1a918a6f1f394f10bd1129332c84f91c671"
+  },
+  {
+    "family": "SourceHanSerif",
+    "url": "https://file.maic.chat/fonts/SourceHanSerif.woff2",
+    "sha256": "4a39a09928cb92aca1e1bf72d841718ecb9c9549c1d1fa95620b8b42f49434db"
+  },
+  {
+    "family": "LXGWWenKai",
+    "url": "https://file.maic.chat/fonts/LXGWWenKai.woff2",
+    "sha256": "5cf730147cd4923546015110f9085216b023df388e2c5ca270b5db17d8de496b"
+  },
+  {
+    "family": "ZhuQueFangSong",
+    "url": "https://file.maic.chat/fonts/ZhuQueFangSong.woff2",
+    "sha256": "81dd160d3c4608a70cc9eb794e4aaf8b1a6b07dec1a5284c48e402f0ffba1459"
+  },
+  {
+    "family": "WenDingPLKaiTi",
+    "url": "https://file.maic.chat/fonts/WenDingPLKaiTi.woff2",
+    "sha256": "5c91fd0d539e35631dd5086451bc37732fa19e9eb9f7202eb881d6616f6d3634"
+  },
+  {
+    "family": "ZcoolHappy",
+    "url": "https://file.maic.chat/fonts/ZcoolHappy.woff2",
+    "sha256": "ee4391316d9e560dbf96d92c7a9a12a73b0ac39b4f77662b43c2bd4fd16dcde7"
+  }
+]

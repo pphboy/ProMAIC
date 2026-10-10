@@ -15,6 +15,14 @@ function readDefaultOnBoolean(envValue: string | undefined): boolean {
   return envValue === undefined || envValue === '' || readBoolean(envValue);
 }
 
+/** Pure environment check, safe in Edge/client-imported flag modules. Validate on Node boot. */
+export function isLocalPlaybackConfigured(): boolean {
+  return (
+    process.env.OPENMAIC_STORAGE_BACKEND === 'sqlite' ||
+    (!process.env.OPENMAIC_STORAGE_BACKEND && !process.env.DATABASE_URL?.trim())
+  );
+}
+
 /**
  * Server-only gate for durable background agent execution. This is evaluated
  * at process runtime and is never exposed to the browser bundle.
@@ -25,7 +33,11 @@ export function isAgentRuntimeEnabled(): boolean {
 
 /** The Node runtime can start the runner only with a non-empty database URL. */
 export function isAgentRuntimeConfigured(): boolean {
-  return isAgentRuntimeEnabled() && Boolean(process.env.DATABASE_URL?.trim());
+  return (
+    !isLocalPlaybackConfigured() &&
+    isAgentRuntimeEnabled() &&
+    Boolean(process.env.DATABASE_URL?.trim())
+  );
 }
 
 /**
@@ -45,7 +57,7 @@ export function isAgentRuntimeConfigured(): boolean {
  * gate on this too: they need the database and nothing the runtime adds.
  */
 export function isServerPersistenceConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL?.trim());
+  return isLocalPlaybackConfigured() || Boolean(process.env.DATABASE_URL?.trim());
 }
 
 /**

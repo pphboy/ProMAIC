@@ -20,6 +20,7 @@ import {
   isAgentRuntimeConfigured,
   isAgentRuntimeEnabled,
   isServerPersistenceConfigured,
+  isLocalPlaybackConfigured,
 } from '@/lib/config/feature-flags';
 
 export const runtime = 'nodejs';
@@ -31,5 +32,6 @@ export async function GET() {
     enabled: isAgentRuntimeConfigured(),
     runtimeEnabled: isAgentRuntimeEnabled(),
     persistence: isServerPersistenceConfigured(),
+    ...(isLocalPlaybackConfigured() ? { localPlayback: true } : {}),
   });
 }

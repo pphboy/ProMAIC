@@ -1,3 +1,17 @@
+# ProMAIC 本地课程播放器
+
+本分支以 Windows 独立桌面播放器为主要交付：导入 OpenMAIC `.maic.zip` 课程包，在本机播放。默认使用 SQLite 和本地媒体文件，无需 PostgreSQL、S3 或 AI 密钥。AI 对话按需配置，基础播放不依赖 AI。
+
+- Windows 构建、安装包位置和验收要求见 [桌面版本说明](desktop/README.md)。安装包内置运行时，使用者无需安装 Node.js 或 Docker。
+- 源码开发：安装项目要求的 Node.js 和 pnpm，执行 `pnpm install`、`pnpm dev`。不需要 `pnpm db:up`；首页直接提供课程导入。
+- 默认数据目录独立于安装目录；可通过绝对路径 `OPENMAIC_DATA_DIR` 指定。备份时关闭应用，复制整个数据目录，包含数据库、媒体和密钥文件。详见 [本地存储](.github/LOCAL_STORAGE.md)。
+- 支持现有 formatVersion 1 课程包。必须的索引媒体缺失时拒绝导入；旧包中的其他外部资源会被阻止并显示提示。缺少旁白时可继续阅读课程内容。
+- 配置 AI 在设置中完成；AI 失败不影响课程库与已打包媒体。课程包本身不需要密钥。
+- 仍保留显式 `DATABASE_URL` 的 PostgreSQL 后端用于兼容上游。默认 Compose 只启动本地应用；旧数据库不会自动转换，迁入本地版请先导出课程 ZIP。
+- 上游同步规则见 [AGENTS.md](AGENTS.md) 和 [维护流程](.github/UPSTREAM_SYNC.md)。
+
+以下为保留的上游项目介绍与历史部署文档；其中默认 PostgreSQL 的说明适用于上游/显式 PostgreSQL 模式，本分支本地模式以以上说明为准。
+
 <!-- <p align="center">
   <img src="assets/logo-horizontal.png" alt="OpenMAIC" width="420"/>
 </p> -->

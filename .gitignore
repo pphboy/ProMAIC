@@ -36,6 +36,8 @@ CLAUDE.local.md
 # generated: synced from packages/@openmaic/importer/dist for runtime URL import
 /public/vendor/maic-importer
 /public/vendor/standalone-player
+/public/vendor/course-runtime
+/public/vendor/course-fonts
 
 # misc
 .DS_Store

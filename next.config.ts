@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_PI_CHAT_ENABLED: process.env.NEXT_PUBLIC_PI_CHAT_ENABLED ?? '',
   },
   output: 'standalone',
+  outputFileTracingExcludes: {
+    '/*': ['./build/**/*', './dist/**/*', './.git/**/*', './.agents/**/*', './openspec/**/*', './e2e/**/*', './tests/**/*', './desktop/**/*', './.github/**/*', './render-service/**/*'],
+  },
   outputFileTracingIncludes: {
     '/*': [
       'lib/server/agent-runtime/import-pptx-worker.mjs',
@@ -58,6 +61,15 @@ const nextConfig: NextConfig = {
     const frameAncestors = extraAncestors ? `'self' ${extraAncestors}` : "'self'";
 
     return [
+      {
+        // Sandboxed course frames have opaque origins; public dependency modules need CORS.
+        source: '/vendor/course-runtime/:path*',
+        headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
+      },
+      {
+        source: '/vendor/course-fonts/:path*',
+        headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
+      },
       {
         source: '/(.*)',
         headers: [

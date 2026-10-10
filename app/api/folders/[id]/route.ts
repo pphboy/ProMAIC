@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * PATCH /api/folders/[id] — rename { name }
  * DELETE /api/folders/[id]?mode=ungroup|remove — delete a folder
@@ -39,6 +41,7 @@ function jsonError(status: number, code: string, message: string, headers?: Head
 
 // PATCH /api/folders/[id] — rename { name }.
 export async function PATCH(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   let body: unknown;
@@ -102,6 +105,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 // DELETE /api/folders/[id]?mode=ungroup|remove
 export async function DELETE(req: NextRequest, { params }: Params) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   const modeParam = req.nextUrl.searchParams.get('mode');

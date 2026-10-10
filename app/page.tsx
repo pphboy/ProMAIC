@@ -1,4 +1,5 @@
 'use client';
+import { LocalCourseLibrary } from '@/components/local-course-library';
 
 import { useState, useEffect, useMemo, useRef, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
@@ -1897,5 +1898,21 @@ function ClassroomCard({
 }
 
 export default function Page() {
-  return <HomePage />;
+  const [local, setLocal] = useState<boolean | null>(null);
+  useEffect(() => {
+    let active = true;
+    fetch('/api/agent/runtime')
+      .then((response) => response.json())
+      .then((body) => {
+        if (active) setLocal(body.localPlayback === true);
+      })
+      .catch(() => {
+        if (active) setLocal(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  if (local === null) return <div className="p-8 text-muted-foreground">正在打开课程库…</div>;
+  return local ? <LocalCourseLibrary /> : <HomePage />;
 }

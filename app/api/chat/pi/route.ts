@@ -30,6 +30,7 @@ import { apiError } from '@/lib/server/api-response';
 import type { ThinkingConfig } from '@/lib/types/provider';
 import type { StatelessChatRequest } from '@/lib/types/chat';
 import { resolveClassroomWebSearchConfig } from '@/lib/server/web-search-config';
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
 import { resolveRequestOwner } from '@/lib/server/identity/resolve';
 import {
   attachOwnerCookies,
@@ -245,7 +246,7 @@ async function chat(req: NextRequest, principal: OwnerPrincipal): Promise<Respon
     let nativeWebSearchConfig: Awaited<ReturnType<typeof resolveClassroomWebSearchConfig>>;
     try {
       nativeWebSearchConfig =
-        childRuntimeMode === 'native'
+        childRuntimeMode === 'native' && !isLocalPlaybackConfigured()
           ? await resolveClassroomWebSearchConfig(await requestWorkspaceId(req), {
               webSearchProviderId: body.webSearchProviderId,
               webSearchApiKey: body.webSearchApiKey,

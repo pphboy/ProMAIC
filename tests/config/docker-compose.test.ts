@@ -63,8 +63,8 @@ afterEach(() => {
 });
 
 describe('docker-compose.yml', () => {
-  it('starts PostgreSQL by default, with a health check and a named volume', () => {
-    expect(postgres.profiles).toBeUndefined();
+  it('keeps PostgreSQL behind an explicit profile, with durable storage', () => {
+    expect(postgres.profiles).toEqual(['postgres']);
     expect(JSON.stringify(postgres.healthcheck?.test)).toContain('pg_isready');
     expect(postgres.volumes).toContain('openmaic-postgres:/var/lib/postgresql/data');
     expect(compose.volumes).toHaveProperty('openmaic-postgres');
@@ -72,17 +72,16 @@ describe('docker-compose.yml', () => {
     expect(postgres.ports).toBeUndefined();
   });
 
-  it('starts the app only once PostgreSQL is healthy, wired to it', () => {
+  it('starts the local app without a PostgreSQL dependency', () => {
     expect(app.profiles).toBeUndefined();
-    expect(app.depends_on?.postgres?.condition).toBe('service_healthy');
+    expect(app.depends_on).toBeUndefined();
     // The default URL lives in the defaults file, so a DATABASE_URL in
     // .env.local (an external database, an encoded password) wins over it;
     // `environment:` would beat .env.local.
     expect(defaultOf(app.environment, 'DATABASE_URL')).toBeUndefined();
     // The same variable initializes the role and builds the default URL.
-    expect(readEnvFile('docker-compose.defaults.env').DATABASE_URL).toBe(
-      'postgres://openmaic:${PERSISTENCE_POSTGRES_PASSWORD:-openmaic-dev}@postgres:5432/openmaic',
-    );
+    expect(readEnvFile('docker-compose.defaults.env').DATABASE_URL).toBeUndefined();
+    expect(defaultOf(app.environment, 'OPENMAIC_DATA_DIR')).toBe('/app/data');
     expect(postgres.environment).toContain(
       'POSTGRES_PASSWORD=${PERSISTENCE_POSTGRES_PASSWORD:-openmaic-dev}',
     );
@@ -92,9 +91,11 @@ describe('docker-compose.yml', () => {
     expect(JSON.stringify(app.build?.args)).not.toContain('NEXT_PUBLIC_PERSISTENCE');
   });
 
-  it('passes its default DATABASE_URL through boot validation', async () => {
-    const { requireDatabaseUrl } = await import('@/lib/server/database-requirement');
-    expect(() => requireDatabaseUrl(readEnvFile('docker-compose.defaults.env'))).not.toThrow();
+  it('selects SQLite from its shipped defaults', async () => {
+    const { resolvePersistenceBackend } = await import('@/lib/persistence/backend-config');
+    expect(resolvePersistenceBackend(readEnvFile('docker-compose.defaults.env')).backend).toBe(
+      'sqlite',
+    );
   });
 
   it('publishes the app on loopback by default, from the variable it passes to the app', () => {
@@ -117,7 +118,6 @@ describe('docker-compose.yml', () => {
   it('defaults to single-user mode and leaves claims explicit', () => {
     const defaults = readEnvFile('docker-compose.defaults.env');
     expect(defaults).toEqual({
-      DATABASE_URL: expect.stringMatching(/@postgres:5432\/openmaic$/),
       OWNER_SINGLE_USER: 'true',
     });
     // An automatic claim irreversibly merges every browser's anonymous library

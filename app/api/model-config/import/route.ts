@@ -8,6 +8,8 @@
  */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalModelSettings } from '@/lib/persistence/sqlite/settings-http';
 import { z } from 'zod';
 
 import { isServerPersistenceConfigured } from '@/lib/config/feature-flags';
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (isLocalPlaybackConfigured()) return handleLocalModelSettings(req, { proposal });
   return withRequestOwner(req, async ({ ownerId }, headers) => {
     const queryable = (await getServerPersistenceProvider(process.env.DATABASE_URL ?? '')).pool;
     try {

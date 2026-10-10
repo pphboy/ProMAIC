@@ -1,3 +1,5 @@
+import { isLocalPlaybackConfigured } from '@/lib/config/feature-flags';
+import { handleLocalLibraryRequest } from '@/lib/persistence/sqlite/library-http';
 /**
  * GET/POST /api/folders — the server course library's folder API (server-side
  * counterpart of the local `lib/utils/stage-storage.ts` folder API; with
@@ -52,6 +54,7 @@ function jsonError(status: number, code: string, message: string, headers?: Head
 
 // GET /api/folders — list the caller's folders, ordered by `order` asc.
 export async function GET(req: NextRequest) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   return withRequestOwner(req, async ({ ownerId }, responseHeaders) => {
@@ -76,6 +79,7 @@ export async function GET(req: NextRequest) {
 // malformed body must not mint an anonymous cookie partition for a request
 // that will not proceed.
 export async function POST(req: NextRequest) {
+  if (isLocalPlaybackConfigured()) return handleLocalLibraryRequest(req);
   if (!isServerPersistenceConfigured()) return new Response('Not found', { status: 404 });
 
   let body: unknown;

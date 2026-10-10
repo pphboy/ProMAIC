@@ -15,6 +15,35 @@ export async function register(): Promise<void> {
   // want; the persistence stack is Node-only.
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
+  const { resolvePersistenceBackend } = await import('@/lib/persistence/backend-config');
+  try {
+    if (resolvePersistenceBackend().backend === 'sqlite') {
+      const { getLocalPersistenceProvider, closeLocalPersistenceProvider } =
+        await import('@/lib/persistence/sqlite/provider');
+      const provider = getLocalPersistenceProvider();
+      const collector = setInterval(
+        () => {
+          try {
+            provider.assets.collect();
+          } catch (error) {
+            console.error('[local-media] collection failed', error);
+          }
+        },
+        15 * 60 * 1000,
+      );
+      collector.unref();
+      process.once('exit', () => {
+        clearInterval(collector);
+        closeLocalPersistenceProvider();
+      });
+      return;
+    }
+  } catch (error) {
+    const { exitOnBootFailure } = await import('@/lib/server/boot-failure');
+    await exitOnBootFailure(error);
+    throw error;
+  }
+
   const { warnIfDefaultDatabasePasswordIsPublished } =
     await import('@/lib/server/database-password-warning');
   warnIfDefaultDatabasePasswordIsPublished();

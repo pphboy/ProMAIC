@@ -24,7 +24,10 @@ server-providers*.yml
 openmaic.yml
 
 # misc
-assets
+# Runtime asset integrity manifests are needed when preparing offline resources.
+# Build caches, local agent instructions and specs are not runtime inputs.
+.agents
+openspec
 *.md
 *.pdf
 *.pem

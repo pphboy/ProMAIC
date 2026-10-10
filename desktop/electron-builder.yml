@@ -1,0 +1,33 @@
+appId: io.promaic.player
+productName: ProMAIC
+directories:
+  app: desktop
+  output: dist/desktop
+files:
+  - package.json
+  - main.cjs
+  - lifecycle.cjs
+  - server.cjs
+  - '!node_modules/**/*'
+extraResources:
+  - from: build/desktop/server
+    to: server
+  # electron-builder excludes a root node_modules from a directory copy.
+  - from: build/desktop/server/node_modules
+    to: server/node_modules
+  - from: LICENSE
+    to: LICENSE.openmaic
+asar: true
+npmRebuild: true
+beforeBuild: desktop/before-build.cjs
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: ProMAIC-${version}-windows-${arch}-setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
