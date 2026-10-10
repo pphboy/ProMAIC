@@ -1,7 +1,9 @@
 # Upstream synchronization
 
 Run checks during repository maintenance; do not run a background updater.
-The source is https://github.com/THU-MAIC/OpenMAIC and the fork remains `origin`.
+The source is https://github.com/THU-MAIC/OpenMAIC and the fork remains `origin`
+at https://github.com/pphboy/ProMAIC. The fork's maintained LocalFirst branch is
+`main`; ordinary authorized changes are committed and pushed there directly.
 These commands are a maintenance procedure, not an instruction to rebase during
 the initial local-player implementation.
 
@@ -34,6 +36,8 @@ the actual values and SHAs. The example names below must not overwrite existing
 references:
 
 ```bash
+git switch main
+git pull --ff-only origin main
 git rev-parse HEAD
 git rev-parse upstream/HEAD
 git branch recovery/before-upstream-sync

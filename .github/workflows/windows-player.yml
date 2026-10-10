@@ -3,7 +3,7 @@ name: Windows player
 on:
   workflow_dispatch:
   push:
-    branches: ['local-course-player-sqlite']
+    branches: ['main']
     tags: ['player-v*']
 
 permissions:

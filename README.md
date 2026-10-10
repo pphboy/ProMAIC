@@ -64,7 +64,7 @@ For source-based runs, set an absolute `OPENMAIC_DATA_DIR` to choose a directory
 Node.js 24 is recommended, with 22.19 as the minimum. The repository pins pnpm 10.28.0 through `packageManager`.
 
 ```bash
-git clone --branch local-course-player-sqlite https://github.com/pphboy/ProMAIC.git
+git clone --branch main https://github.com/pphboy/ProMAIC.git
 cd ProMAIC
 pnpm install --frozen-lockfile
 pnpm dev
@@ -96,6 +96,8 @@ Prepare native dependencies on Windows. See [desktop documentation](desktop/READ
 ProMAIC is based on [THU-MAIC/OpenMAIC](https://github.com/THU-MAIC/OpenMAIC), retaining its course model, ZIP format, and relevant validation contracts. Thanks to the upstream team and contributors.
 
 **This repository's LocalFirst scope and configuration take precedence.** Upstream generation-platform, online-service, and PostgreSQL deployment documentation is reference material. This README and the [desktop guide](desktop/README.md) describe the local player.
+
+The maintained development and delivery branch is `main` in `pphboy/ProMAIC`.
 
 Maintenance proactively checks upstream changes and uses rebase as the primary synchronization method. Features must be adapted to SQLite and local resource constraints; unported features are recorded explicitly. See [AGENTS.md](AGENTS.md), the [upstream synchronization procedure](.github/UPSTREAM_SYNC.md), and [OpenSpec implementation tasks](openspec/changes/local-course-player-sqlite/tasks.md).
 

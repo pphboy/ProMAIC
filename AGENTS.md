@@ -5,6 +5,22 @@ https://github.com/THU-MAIC/OpenMAIC. The primary flow is importing and playing
 OpenMAIC `.maic.zip` courses. SQLite and local files hold durable data; only
 explicit user AI operations may call configured AI APIs.
 
+## Maintain the fork's main branch
+
+The maintained repository is https://github.com/pphboy/ProMAIC, and `main` is
+its LocalFirst development and delivery branch. The user has explicitly
+requested direct maintenance of this branch.
+
+- Start ordinary maintenance from an up-to-date `main`. Complete authorized
+  changes with a commit and push to `origin/main`; do not leave completed work
+  only on a feature branch.
+- Use temporary branches when needed for isolation or upstream review, then
+  integrate the reviewed result into `main` without discarding other work.
+- Preserve shared history. Do not force-push `main`; if upstream integration
+  requires rewriting it, obtain separate authorization as described below.
+- LocalFirst behavior and this fork's README take precedence when adapting
+  upstream features or documentation.
+
 ## Keep the local contract
 
 - Preserve the upstream document and archive formats, validators, and public

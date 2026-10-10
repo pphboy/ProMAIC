@@ -64,7 +64,7 @@ Windows 桌面版的课程数据通常位于：
 建议使用 Node.js 24，最低要求为 22.19；pnpm 版本按仓库 `packageManager` 固定为 10.28.0。
 
 ```bash
-git clone --branch local-course-player-sqlite https://github.com/pphboy/ProMAIC.git
+git clone --branch main https://github.com/pphboy/ProMAIC.git
 cd ProMAIC
 pnpm install --frozen-lockfile
 pnpm dev
@@ -96,6 +96,8 @@ dist/desktop/ProMAIC-<version>-windows-x64-setup.exe
 ProMAIC 基于 [THU-MAIC/OpenMAIC](https://github.com/THU-MAIC/OpenMAIC)，保留上游课程模型、ZIP 格式和相关验证契约。感谢上游团队及贡献者。
 
 **本仓库以 LocalFirst 的功能范围和配置为准。** 上游的生成平台、在线服务与 PostgreSQL 部署文档用于参考；本地播放器的使用入口是本页及 [桌面说明](desktop/README.md)。
+
+日常开发与交付直接维护 `pphboy/ProMAIC` 的 `main` 分支。
 
 维护时主动检查上游变化，以 rebase 为主要同步方式；新功能必须适配 SQLite 和本地资源边界，未适配功能明确记录。具体规则见 [AGENTS.md](AGENTS.md) 与 [上游同步流程](.github/UPSTREAM_SYNC.md)。实施进度见 [OpenSpec 任务](openspec/changes/local-course-player-sqlite/tasks.md)。
 
