@@ -1,5 +1,5 @@
 import { homedir } from 'node:os';
-import { isAbsolute, join, resolve, win32 } from 'node:path';
+import { posix, win32 } from 'node:path';
 
 export type PersistenceBackendConfig =
   | { backend: 'postgres'; connectionString: string }
@@ -34,7 +34,7 @@ export function resolvePersistenceBackend(
   }
 
   const platform = options.platform ?? process.platform;
-  const path = platform === 'win32' ? win32 : { isAbsolute, join, resolve };
+  const path = platform === 'win32' ? win32 : posix;
   const configuredDir = env.OPENMAIC_DATA_DIR?.trim();
   if (configuredDir && !path.isAbsolute(configuredDir)) {
     throw new Error('OPENMAIC_DATA_DIR must be an absolute path');
